@@ -1,0 +1,3 @@
+---
+httpd_awx_home: '/var/lib/awx'
+httpd_exec_vars_only: false

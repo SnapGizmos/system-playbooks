@@ -1,0 +1,78 @@
+---
+- name: '{{ disk_name }} -> transform pool string to map '
+  set_fact: 
+    pool: "{ 'name': '{{ disk.pool_name }}' }"
+  when: disk.pool is not defined 
+  tags: define-guest-disk
+
+- name: '{{ disk_name }} -> pool map '
+  set_fact: 
+    pool: '{{ disk.pool }}'
+  when: disk.pool is defined 
+  tags: define-guest-disk
+
+- name: '{{ disk_name }} -> disk.pool contiene '
+  debug:
+    msg: 'pool {{ pool }}'
+  tags: 
+    - debug
+    - define-guest-disk
+
+- name: '{{ disk_name }} -> Testing existence of pool'
+  command: ceph osd pool stats {{ pool.name }}
+  register: pooltest
+  ignore_errors: true
+  tags: define-guest-storage
+
+- name: '{{ disk_name }} -> Creating the pool'
+  command: ceph osd pool create {{ pool.name }} {{ pool.pg|default(128) }} {{ pool.pg|default(128) }} {{ pool.type|default('replicated') }}
+  when: pooltest|failed
+  tags: define-guest-storage
+
+- name: '{{ disk_name }} -> Configuring pool size'
+  command: ceph osd pool set {{ pool.name }} size {{ pool.size |default(2) }} 
+  when: pool.size is defined 
+  tags: define-guest-storage
+
+- name: '{{ disk_name }} -> Testing existence of rbd'
+  command: rbd info {{ pool.name }}/{{ disk.name }}
+  register: rbdtest
+  ignore_errors: true
+  tags: define-guest-storage
+
+- name: '{{ disk_name }} -> Creating raw rbd with QEMU'
+  command: qemu-img create -f raw 'rbd:{{ pool.name }}/{{ disk.name}}' {{ disk.size }}
+  when: rbdtest|failed
+  tags: define-guest-storage
+
+- name: '{{ disk_name }} -> Testing pool on the hypervisor '
+  command: virsh pool-info '{{ pool.name }}'
+  register: vmpooltest
+  ignore_errors: true
+  tags: define-hypervisor-storage
+
+- name: '{{ disk_name }} -> Creating pool xml on the hypervisor fs'
+  template: 
+    src: default-vmpool.xml.j2
+    dest: '/root/kvm/pools/{{ pool.name }}.xml'
+  register: tmp
+  when: vmpooltest|failed
+  tags: define-hypervisor-storage
+
+- name: '{{ disk_name }} -> pool.output contiene '
+  debug:
+    msg: 'creation {{ tmp }} '
+  tags: 
+    - debug
+    - define-hypervisor-storage
+
+- name: '{{ disk_name }} -> Defining pool on the hypervisor '
+  command: virsh pool-define '/root/kvm/pools/{{ pool.name }}.xml'
+  when: vmpooltest|failed
+  tags: define-hypervisor-storage
+
+- name: '{{ disk_name }} -> Starting pool on the hypervisor '
+  command: virsh pool-start '{{ pool.name }}'
+  when: vmpooltest|failed
+  tags: define-hypervisor-storage
+

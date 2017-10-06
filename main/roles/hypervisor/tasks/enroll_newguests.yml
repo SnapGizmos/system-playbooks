@@ -1,0 +1,16 @@
+---
+- name: Start the vm 
+  virt: 
+    name: '{{ vmguest.name }}'
+    state: running
+
+- name: Check the vm 
+  virt: 
+    name: '{{ vmguest.name }}'
+    command: status
+  register: guest
+
+- name: Debugging guest status
+  debug:
+    msg: "Hey! it booted {{ guest }} "
+

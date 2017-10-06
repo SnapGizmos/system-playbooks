@@ -1,0 +1,3 @@
+---
+migrations_database: 'internal'
+#migrations_pg_database: None

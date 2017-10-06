@@ -1,0 +1,10 @@
+<pool type="rbd" >
+<name>{{ pool.name }}</name>
+<source>
+        <name>{{ pool.name }}</name>
+        <host name="{{ ceph.monitor_address }}" />
+        <auth username='libvirt' type="ceph">
+                <secret type='ceph' uuid='2a452999-34b1-490f-b869-a22c48105150'/>
+        </auth>
+</source>
+</pool>

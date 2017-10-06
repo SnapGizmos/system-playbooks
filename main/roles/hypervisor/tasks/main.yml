@@ -1,0 +1,11 @@
+---
+- include: prepare_kvm.yml 
+  name: '{{ ansible_host }} Preparing Hypervisor server with kvm'
+
+- include: define_guests.yml vmguest={{ vmguests[item] }}
+  name: '{{ ansible_host }} -> VM Guest definitions '
+  with_items: '{{ vmguests|default({}) }}'
+
+- include: enroll_newguests.yml vmguest={{ vmguests[item] }}
+  name: '{{ ansible_host }} -> VM Guest enrollment into the infrastructure '
+  with_items: '{{ vmguests|default({}) }}'

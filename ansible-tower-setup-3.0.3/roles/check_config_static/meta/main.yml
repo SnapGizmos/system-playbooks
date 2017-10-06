@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Chris Meyers
+  description: Validate ansible tower variables that are statically verifiable (i.e. configuration permutations)
+  company: Ansible
+  license: license (GPLv2, CC-BY, etc)
+  min_ansible_version: 1.9
+  platforms:
+  - name: EL
+    versions:
+    - 6
+    - 7
+  - name: Ubuntu
+    versions:
+    - precise
+    - trusty
+dependencies: []
+  # List your role dependencies here, one per line.
+  # Be sure to remove the '[]' above if you add dependencies
+  # to this list.
+  

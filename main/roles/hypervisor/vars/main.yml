@@ -1,0 +1,27 @@
+---
+
+supporting_software:
+  - libselinux-python 
+  - ceph-common
+
+spice_ports: 1234
+ntp_server: 192.168.128.7
+
+ceph_admin_key: '{{ vault_ceph_admin_key }}'
+
+ceph:
+  monitor_address: 192.168.128.71
+
+#ceph_origin: distro
+#
+#ceph_fsid: "f4f098b8-0509-495b-a43f-366bb471ee75"
+#ceph_generate_fsid: false
+#ceph_monitor_address: 192.168.128.71
+#fsid: "f4f098b8-0509-495b-a43f-366bb471ee75"
+#generate_fsid: false
+#monitor_address: 192.168.128.71
+#
+#ceph_conf_overrides:
+#  global:
+#    fsid: "f4f098b8-0509-495b-a43f-366bb471ee75"
+  

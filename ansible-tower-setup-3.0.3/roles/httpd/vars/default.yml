@@ -1,0 +1,4 @@
+---
+httpd_init_name: "httpd"
+htpasswd_cmd: "htpasswd"
+apache_user: "apache"

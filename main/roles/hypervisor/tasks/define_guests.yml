@@ -1,0 +1,112 @@
+---
+- name: '{{ vmguest.name }} -> Lets check the content of the disks'
+  debug:
+    msg: "Variable vmguest.disks {{ vmguest.disks }} "
+  tags: 
+    - debug
+    - define-guest-storage
+
+- name: '{{ vmguest.name }} -> Defining CEPH RBD disks'
+  include: define_disk.yml disk={{vmguest.disks[itm]}} disk_name={{ itm }}
+  with_items: '{{ vmguest.disks }}'
+  loop_control:
+    loop_var: itm
+
+- name: '{{ vmguest.name }} -> Test dhcp-server looking for vm '
+  delegate_to: dhcp-server
+  shell: asdfpcregrep -n -M '{{vmguest.name}} \{(\n*.*?\n*)*?\}' /etc/dhcp/mgt.hosts | sed -n 's/.* ethernet \(.*\);/\1/p'
+  ignore_errors: true
+  register: vmmac 
+  tags: define-guest-network
+
+- name: '{{ vmguest.name }} -> vmmac contiene '
+  debug:
+    msg: 'vmmac {{ vmmac }}'
+  tags: 
+    - debug
+    - define-guest-network
+
+- name: '{{ vmguest.name }} -> Register new mac address for vm '
+  set_fact: 
+    vmaux:
+        macaddr: '{{ vmmac.stdout_lines }}'
+  when: vmmac is not undefined and vmmac.stdout_lines != [] 
+  tags: define-guest-network
+
+- name: '{{ vmguest.name }} -> Generate mac address for vm '
+#   command: virsh domiflist os-node3 | grep vlan22.mgt | sed -e  's/ *$//' -e 's/.* //'
+  command: /usr/local/bin/macgen.py | hwaddr
+  register: vmmac
+  when: vmmac is undefined or vmmac.stdout_lines == [] 
+  tags: define-guest-network
+
+- name: '{{ vmguest.name }} -> vmmac variable test '
+  debug:
+    msg: 'vmmac {{ vmmac }}'
+  tags: 
+    - debug
+    - define-guest-network
+
+- name: '{{ vmguest.name }} -> Register new mac address into the vmguest attr'
+  set_fact: 
+    vmaux:
+        macaddr: '{{ vmmac.stdout }}'
+  when: vmmac is not undefined and vmmac.stdout != "" 
+  tags: define-guest-network
+
+- name: '{{ vmguest.name }} -> Registering mac address on the DHCP Server '
+  delegate_to: dhcp-server
+  blockinfile: 
+    dest: '/etc/dhcp/mgt.hosts'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ vmguest.name }}"
+    block: |
+      host {{ vmguest.name }} {
+        option host-name "{{ vmguest.name }}";
+        ddns-hostname "{{ vmguest.name }}";
+        server-name "{{ vmguest.name }}";
+        hardware ethernet {{ vmaux.macaddr }};
+      }
+  notify: restart dhcpd
+  tags: define-guest-network
+
+- name: '{{ vmguest.name }} -> debug output xml for the vm'
+  debug:
+    msg: "{{ lookup('template','default-vmguest.xml.j2') }}"
+  tags: 
+    - debug
+    - define-guest-kvm
+
+- name: '{{ vmguest.name }} -> Define the vm '
+  virt: 
+    name: '{{ vmguest.name }}'
+    command: define
+    xml: "{{ lookup('template', 'default-vmguest.xml.j2') }}"
+  tags: define-guest-kvm
+
+- name: '{{ vmguest.name }} -> Getting vm info'
+  virt: 
+    name: '{{ vmguest.name }}'
+    command: info
+  register: vmstat
+  tags: define-guest-kvm
+
+- name: '{{ vmguest.name }} -> debug for the vmstat'
+  debug:
+    msg: 'vmstat would yield {{ vmstat[vmguest.name] }}'
+  tags: 
+    - debug
+    - define-guest-kvm
+
+- name: '{{ vmguest.name }} -> adding the newly created host '
+  add_host:
+    name: '{{ vmguest.name }}'
+    groups: just_created
+    vminfo: '{{ vmguest }}'
+    vmaux: '{{ vmaux }}'
+  tags: define-guest-kvm
+
+#- name: Grouping/Categorizing this new vm based on status
+#  group_by:
+#    key: '{{ vmstat[vmguest.name].state }}'
+#  #  local_action: group_by key={{ guest.provisioning_status }}
+

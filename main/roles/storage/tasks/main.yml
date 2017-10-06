@@ -1,0 +1,40 @@
+---
+# tasks file for storage
+
+- name: Identify missing drives
+  debug:
+    var: device
+#
+#- name: Identify missing mounts
+#  debug:
+#    msg: "Mounts {{ ansible_mounts | map(attribute='device')|list }}"
+
+#- name: Identify more mounts
+#  debug:
+#    msg: "Mounts {{ ansible_mounts | selectattr('device','equalto','/dev/'+device)|first|default('') }}"
+#
+#- name: Identify more mounts
+#    msg: "Mounts {{ ansible_mounts | selectattr('device','equalto','/dev/'+device)|first|default('') }}"
+# "{{ hostvars[inventory_hostname]['ansible_devices'][item]|combine({'name': item}) }}"
+# "{{ hostvars[inventory_hostname]['ansible_mounts']|attr('device') }}"
+#
+#        "ansible_mounts": [
+#            {
+#                "device": "/dev/mapper/testbox1--vg-root", 
+#                "fstype": "ext4", 
+#                "mount": "/", 
+#                "options": "rw,relatime,errors=remount-ro,data=ordered", 
+#                "size_available": 16878563328, 
+#                "size_total": 19847311360, 
+#                "uuid": "e3185cf7-2180-4d42-878a-20f93fcf9339"
+#            }, 
+#
+# mkdir /srv/webdav/black_3
+# mkfs.ext4 /dev/vdd
+# mount /dev/vdd /srv/webdav/black_3/
+#root@h:~# cat jcea/mkpath.py 
+#import os
+#for i in range(256):
+#os.mkdir("%02X"%i)
+# 
+# chown -R www-data:www-data /srv/webdav/black_3/

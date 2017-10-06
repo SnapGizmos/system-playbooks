@@ -1,0 +1,24 @@
+
+vmguests:
+  tower:
+    name: ansible
+    disks: 
+      rootfs: 
+        pool_name: vmds
+        name: rootfs_ansible
+        size: 50G
+      black3:
+        pool: 
+          name: mmedia-jcea-03
+          type: replicated
+          size: 2
+          pg: 256
+        name: rbd-jcea1T-03
+        size: 1024G
+  os-node3:
+    name: os-node3
+    disks:
+      rootfs: 
+        pool_name: vmds
+        name: rootfs_ose-node3
+        size: 10G

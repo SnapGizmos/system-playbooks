@@ -1,0 +1,80 @@
+---
+- name: Update postgresql authentication settings
+  template:
+    dest: '{{ pg_hba_location }}'
+    owner: postgres
+    src: pg_hba.conf.j2
+  register: pg_hba_conf
+
+- name: Update listen address in postgresql.conf
+  lineinfile:
+    dest: '{{ pg_conf_location }}'
+    regexp: '^#?\s*listen_addresses.*'
+    line: "listen_addresses = '*'"
+    state: present
+  register: pg_conf_listen_addr
+
+- name: Update unix_socket_directories in postgresql.conf
+  lineinfile:
+    dest: '{{ pg_conf_location }}'
+    regexp: '^#?\s*unix_socket_directories.*'
+    line: "unix_socket_directories = '{{ postgres_run_dir }}, /tmp'"
+    state: present
+  register: pg_conf_unix_socket
+
+- name: Create unix socket directory
+  file:
+    path: '{{ postgres_run_dir }}'
+    state: directory
+    owner: 'postgres'
+    group: 'postgres'
+    mode: 02775
+    setype: 'postgresql_var_run_t'
+
+- name: Configure postgresql tmpfiles.d
+  template:
+    src: 'postgresql.tmpfiles.d.j2'
+    dest: '/usr/lib/tmpfiles.d/postgresql.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    setype: 'lib_t'
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'
+
+- name: restart postgresql when authentication settings changed
+  service:
+    name: '{{ postgres_init_name }}'
+    state: restarted
+  when: pg_hba_conf|changed or pg_conf_listen_addr|changed or pg_conf_unix_socket|changed
+  register: postgresql_restart
+
+- name: wait for postgresql restart
+  wait_for:
+    host: localhost
+    port: 5432
+  when: postgresql_restart|changed
+
+- name: configure postgresql to start automatically
+  service: 
+    name: '{{ postgres_init_name }}'
+    enabled: yes
+
+- name: create the postgres user and set the password
+  postgresql_user:
+    name: "{{ postgres_username }}"
+    password: "{{ postgres_password }}"
+  sudo: True
+  sudo_user: postgres
+  when: "postgres_username is defined and postgres_username != '' and postgres_password is defined and postgres_password != ''"
+  no_log: True
+
+- name: create the postgresql database for awx
+  postgresql_db:
+    name: "{{ postgres_database }}"
+    owner: "{{ postgres_username }}"
+    state: present
+    login_user: postgres
+  sudo: True
+  sudo_user: postgres
+  when: "postgres_username is defined and postgres_username != '' and postgres_database is defined and postgres_database != ''"
+

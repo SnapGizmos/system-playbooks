@@ -1,0 +1,17 @@
+---
+- name: Remove the restore directory.
+  #debug: msg="hello world"
+  file:
+    path: '{{ backup_dir.rstrip("/") }}/restore/'
+    state: absent
+
+- name: start apache.
+  service:
+    name: '{{ apache_service_name }}'
+    state: started
+
+- name: start supervisord.
+  service:
+    name: '{{ supervisor_service_name }}'
+    state: started
+

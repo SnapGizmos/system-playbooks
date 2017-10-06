@@ -1,0 +1,1 @@
+localhost ansible_connection=local ansible_python_interpreter=/Users/meyers/ansible/provision_docker/.env/bin/python

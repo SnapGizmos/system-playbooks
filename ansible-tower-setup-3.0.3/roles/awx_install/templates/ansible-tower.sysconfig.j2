@@ -1,0 +1,20 @@
+# The settings in this file are used by the service ansible-tower.
+
+# List of services managed by Ansible Tower (space-delimited).
+{% if awx_install_database == 'external' %}
+{% if ansible_os_family == 'Debian' %}
+TOWER_SERVICES="redis-server apache2 supervisor"
+{% elif ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' %}
+TOWER_SERVICES="redis httpd24-httpd supervisord"
+{% else %}
+TOWER_SERVICES="redis httpd supervisord"
+{% endif %}
+{% else %}
+{% if ansible_os_family == 'Debian' %}
+TOWER_SERVICES="{{ awx_install_pg_init_name }} redis-server apache2 supervisor"
+{% elif ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' %}
+TOWER_SERVICES="{{ awx_install_pg_init_name }} redis httpd24-httpd supervisord"
+{% else %}
+TOWER_SERVICES="{{ awx_install_pg_init_name }} redis httpd supervisord"
+{% endif %}
+{% endif %}

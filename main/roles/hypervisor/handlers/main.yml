@@ -1,0 +1,6 @@
+---
+- name: restart dhcpd
+  delegate_to: dhcp-server
+  service: 
+    name: dhcpd
+    state: restarted

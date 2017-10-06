@@ -1,0 +1,6 @@
+---
+httpd_init_name: "httpd24-httpd"
+htpasswd_cmd: "/opt/rh/httpd24/root/usr/bin/htpasswd"
+apache_user: "apache"
+httpd_old_init_names:
+  - "httpd"

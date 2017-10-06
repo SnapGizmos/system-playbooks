@@ -1,0 +1,24 @@
+---
+vmguests:
+  jcea:
+    name: dmz-jcea-clone
+    disks:
+      black3:
+        pool: 
+          name: mmedia-jcea-03
+          type: replicated
+          size: 2
+          pg: 256
+        name: rbd-jcea1T-03
+        size: 1024G
+      black4:
+        pool: 
+          name: mmedia-jcea-04
+          type: replicated
+          size: 2
+          pg: 256
+        name: rbd-jcea1T-04
+        size: 1024G
+
+## ceph osd pool create mmedia-jcea-01 256 256 replicated
+## ceph osd pool set mmedia-jcea-02 size 2 

@@ -1,0 +1,34 @@
+---
+
+el_dependencies: '{{ el6_dependencies }}'
+
+yum_online_repo_files:
+  - 'epel-6.repo'
+  - 'pgdg-94-centos.repo'
+  - 'jlaska-supervisor-3-epel-6.repo'
+  - 'jlaska-redis-28-epel-6.repo'
+  - 'jlaska-proot-epel-6.repo'
+
+yum_repo_keys:
+  - '10gen-gpg-key.asc'
+  - 'RPM-GPG-KEY-EPEL-6'
+  - 'RPM-GPG-KEY-PGDG-94'
+  - 'RPM-GPG-KEY-ansible-release'
+  - 'jlaska-supervisor-3-epel-6.gpg'
+  - 'jlaska-redis-28-epel-6.gpg'
+  - 'jlaska-proot-epel.gpg'
+
+redhat_aws_rhui_repos:
+  - 'rhui-REGION-rhel-server-rhscl'
+  - 'rhui-REGION-rhel-server-releases-optional'
+
+redhat_rhui_repos:
+  - 'rhui-rhel-server-rhscl-6-rhui-rpms'
+  - 'rhui-rhel-6-server-rhui-optional-rpms'
+
+redhat_rhsm_repos:
+  - 'rhel-server-rhscl-6-rpms'
+  - 'rhel-6-server-optional-rpms'
+
+tower_bundle_file: tower_bundle_el6.j2
+tower_package_rpm: 'python27-{{ packages_el_tower_package_name }} == {{ packages_el_tower_package_version }}'

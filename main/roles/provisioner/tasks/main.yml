@@ -1,0 +1,12 @@
+
+- name: Test host record
+  shell: grep '{{ vminfo.name }}' /etc/dhcp/dhcpd.hosts
+  register: 'tmp'
+
+- name: Update DHCP Server
+  template: 
+    name: '/etc/dhcp/dhcpd.hosts'
+    state: running
+  when: tmp.stdout == ""
+
+- include: start_newguests.yml vmguest={{ vminfo }}

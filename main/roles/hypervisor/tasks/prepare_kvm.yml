@@ -1,0 +1,50 @@
+---
+- name: '{{ ansible_host }} -> Including CEPH Secrets'
+  include_vars: ceph_secrets.yml
+  no_log: true
+  tags: always
+
+- name: '{{ ansible_host }} -> Installing software packages'
+  yum:
+    pkg: "{{ itm }}"
+  with_items: "{{ supporting_software }}"
+  loop_control:
+    loop_var: itm
+  tags: packages
+
+- name: '{{ ansible_host }} -> Output some debug'
+  debug:
+    msg: "Check variable ntp {{ ntp_server }} with these spice prots {{ spice_ports }} "
+  tags: debug
+
+- name: '{{ ansible_host }} -> Put ceph-cli configuration file'
+  template:
+    src: templates/ceph.conf.j2
+    dest: /etc/ceph/ceph.conf
+  tags: storage
+
+- name: '{{ ansible_host }} -> Put ceph-cli keyring file'
+  template:
+    src: templates/ceph.client.admin.keyring
+    dest: /etc/ceph/ceph.client.admin.keyring
+  tags: storage
+
+- name: '{{ ansible_host }} -> create usr/local/bin'
+  file:
+    dest: /usr/local/bin
+    state: directory
+  tags: define-guest-network
+
+- name: '{{ ansible_host }} -> create root/kvm/pools '
+  file:
+    dest: /root/kvm/pools
+    state: directory
+  tags: define-guest-network
+
+- name: '{{ ansible_host }} -> Put macgen.py binary in local path'
+  copy:
+    src: files/macgen.py
+    dest: /usr/local/bin/macgen.py
+    mode: a+x
+  tags: define-guest-network
+    

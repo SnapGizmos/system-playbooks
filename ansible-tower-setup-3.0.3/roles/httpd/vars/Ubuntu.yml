@@ -1,0 +1,4 @@
+---
+httpd_init_name: "apache2"
+htpasswd_cmd: "htpasswd"
+apache_user: "www-data"

@@ -1,0 +1,73 @@
+<domain type="kvm">
+  <name>{{ vmguest.name }}</name>
+  <memory>2097152</memory>
+  <currentMemory>2097152</currentMemory>
+  <vcpu>1</vcpu>
+  <os>
+    <type arch="x86_64">hvm</type>
+    <boot dev="network" />
+    <boot dev="hd" />
+  </os>
+  <features>
+    <acpi />
+    <apic />
+    <vmport state="off" />
+  </features>
+  <cpu match="exact" mode="custom">
+    <model>Nehalem</model>
+  </cpu>
+  <clock offset="utc">
+    <timer name="rtc" tickpolicy="catchup" />
+    <timer name="pit" tickpolicy="delay" />
+    <timer name="hpet" present="no" />
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <pm>
+    <suspend-to-mem enabled="no" />
+    <suspend-to-disk enabled="no" />
+  </pm>
+  <devices>
+    <emulator>/usr/bin/qemu-kvm</emulator>
+{% for disk in vmguest.disks %}
+    <disk device="disk" type="network">
+      <driver cache="none" name="qemu" type="raw" />
+      <source name="{{ vmguest.disks[disk].pool.name }}/{{ vmguest.disks[disk].name }}" protocol="rbd">
+        <host name="{{ ceph.monitor_address }}" />
+      </source>
+      <!-- target bus="ide" dev="hda" / -->
+      <auth username="libvirt">
+        <secret type="ceph" uuid="2a452999-34b1-490f-b869-a22c48105150" />
+      </auth>
+    </disk>
+{% endfor %}
+    <controller index="0" model="ich9-ehci1" type="usb" />
+    <controller index="0" model="ich9-uhci1" type="usb">
+      <master startport="0" />
+    </controller>
+    <controller index="0" model="ich9-uhci2" type="usb">
+      <master startport="2" />
+    </controller>
+    <controller index="0" model="ich9-uhci3" type="usb">
+      <master startport="4" />
+    </controller>
+    <interface type="bridge">
+      <source bridge="vlan22.mgt" />
+      <mac address="{{ vmaux.macaddr }}" />
+      <model type="virtio" />
+    </interface>
+    <input bus="ps2" type="mouse" />
+    <graphics autoport="yes" port="-1" tlsPort="-1" type="spice" />
+    <console type="pty" />
+    <channel type="spicevmc">
+      <target name="com.redhat.spice.0" type="virtio" />
+    </channel>
+    <sound model="ich6" />
+    <video>
+      <model type="qxl" />
+    </video>
+    <redirdev bus="usb" type="spicevmc" />
+    <redirdev bus="usb" type="spicevmc" />
+  </devices>
+</domain>

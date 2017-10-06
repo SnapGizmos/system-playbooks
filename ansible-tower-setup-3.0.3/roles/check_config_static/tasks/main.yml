@@ -1,0 +1,36 @@
+---
+- name: Ensure expected variables are defined
+  fail: msg="{{ item }} value missing and is required"
+  when: "{{ item }} is not defined"
+  with_items: "{{ check_config_static_required_vars }}"
+  register: check_config_static_results
+  tags: check_config_static_vars
+
+- name: Ensure only one primary host exists
+  fail: msg="One, and only one, primary host may be specified. Primaries {{ groups['primary'] }}"
+  when: "groups['primary']|length != 1"
+  tags: check_config_static_single_primary
+
+- name: Ensure only one database host exists
+  fail: msg="One, and only one, database host may be specified. Database group hosts {{ groups['database'] }}"
+  when: "groups['database'] is defined and groups['database']|length > 1"
+  tags: check_config_static_single_database
+
+- name: Ensure when postgres host is defined that the port is defined
+  fail: msg="pg_host variable defined but pg_port is not defined. Please define it."
+  when: "pg_host is defined and pg_port is not defined"
+  register: check_config_static_results
+  tags: check_config_static_var_pairs
+
+- name: Ensure that when a database host is specified, that pg_host and pg_port is defined
+  fail: msg="pg_host and pg_port required when hosts in the database group exist."
+  when: "groups['database'] is defined and groups['database']|length >= 1 and pg_host is not defined"
+  tags: check_config_static_database_host
+
+- name: HA mode requires an external postgres database
+  fail: msg="pg_host and pg_port must be defined when secondary host exists"
+  when: "groups['secondary'] is defined and groups['secondary']|length > 0 and (pg_host is not defined or pg_port is not defined)"
+  register: check_config_static_results
+  tags:
+    - check_config_static_ha_pg
+    - check_config_static_ha

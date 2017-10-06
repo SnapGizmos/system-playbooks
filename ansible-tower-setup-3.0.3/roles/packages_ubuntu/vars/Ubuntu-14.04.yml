@@ -1,0 +1,14 @@
+---
+apt_keys:
+    - url: 'https://www.postgresql.org/media/keys/ACCC4CF8.asc'
+    - url: 'https://releases.ansible.com/keys/442667A9.asc'
+
+apt_repos:
+    - 'ppa:ansible/ansible'
+    - 'ppa:jal233/proot'
+    # - 'ppa:chris-lea/zeromq'
+    - 'deb http://download.postgresql.org/pub/repos/apt/ trusty-pgdg main'
+
+ubuntu_dependencies:
+    - 'python-psycopg2'
+    - 'acl'

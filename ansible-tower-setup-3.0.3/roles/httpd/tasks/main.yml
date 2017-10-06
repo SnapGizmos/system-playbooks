@@ -1,0 +1,5 @@
+---
+# Tasks for configuring Apache HTTP server.
+- include: vars.yml
+- include: tasks.yml
+  when: "httpd_exec_vars_only == false"

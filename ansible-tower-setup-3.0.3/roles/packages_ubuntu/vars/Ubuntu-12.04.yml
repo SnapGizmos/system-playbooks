@@ -1,0 +1,16 @@
+---
+apt_keys:
+    - url: 'https://www.postgresql.org/media/keys/ACCC4CF8.asc'
+    - url: 'https://releases.ansible.com/keys/442667A9.asc'
+
+apt_repos:
+    - 'ppa:debugmonkeys/sosreport'
+    - 'ppa:chris-lea/redis-server'
+    - 'ppa:jal233/proot'
+    # - 'ppa:chris-lea/zeromq'
+    - 'ppa:ansible/ansible'
+    - 'deb http://download.postgresql.org/pub/repos/apt/ precise-pgdg main'
+
+ubuntu_dependencies:
+    - 'python-psycopg2'
+    - 'acl'

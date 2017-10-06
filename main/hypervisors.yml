@@ -1,0 +1,14 @@
+---
+- name: configuring Hypervisor roles
+  hosts: hypervisors
+  become: yes
+  roles:
+    - hypervisor
+
+- name: Enroll new guest vms
+  hosts: offline-just_created
+  become: yes
+  gather_facts: no
+  roles:
+    - provisioner
+

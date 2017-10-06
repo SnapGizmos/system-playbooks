@@ -1,0 +1,33 @@
+---
+- name: configuring Storage 
+  hosts: mmedia-server
+  become: yes
+#  roles:
+#    - role: storage 
+#      device: "{{ hostvars[inventory_hostname]['ansible_devices'][item] }}"
+#      device: "{{ item }}"
+#      with_items: hostvars[inventory_hostname]['ansible_devices'] 
+
+#    - jcea
+
+  tasks:
+
+    - name: Debugg variables
+      debug:
+        var: hostvars[inventory_hostname]
+        verbosity: 1
+
+    - name: Include the role
+      include_role:
+        name: storage
+      vars:
+        device: "{{ item }}"
+      when: "hostvars[inventory_hostname]['ansible_mounts']|selectattr('device','equalto','/dev/'+item)|first is not defined"
+      with_items: "{{ hostvars[inventory_hostname]['ansible_devices'] }}"
+
+    - name: Debug mounts
+      debug:
+        var: item
+        verbosity: 0
+      when: hostvars[inventory_hostname]['ansible_mounts'][0] is equalto 'vda'
+      with_items: hostvars[inventory_hostname]['ansible_devices']

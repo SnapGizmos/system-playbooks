@@ -1,0 +1,7 @@
+---
+# Handlers for common notifications.
+
+- name: restart httpd
+  service:
+    name: "{{ httpd_init_name }}"
+    state: restarted

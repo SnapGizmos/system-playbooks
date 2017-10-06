@@ -1,0 +1,78 @@
+---
+- name: Determine if selinux is enabled
+  command: getenforce
+  register: getenforce
+  ignore_errors: true
+  changed_when: false
+
+- name: Open up permissions on httpd.
+  seboolean:
+    name: '{{item}}'
+    persistent: yes
+    state: 'true'
+  when: getenforce|success and getenforce.stdout.lower() != "disabled"
+  with_items:
+    - httpd_can_network_connect
+    - httpd_execmem
+    # - allow_httpd_mod_auth_pam # only works on EL6
+    # - httpd_mod_auth_pam # only works on EL7
+    # - httpd_setrlimit
+
+- name: enable mod_ssl (Ubuntu specific)
+  command: a2enmod ssl
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart httpd
+
+- name: enable mod_rewrite (Ubuntu specific)
+  command: a2enmod rewrite
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart httpd
+
+- name: create self signed SSL certificates
+  command: openssl req -x509 -nodes -sha256 -days 99999 -newkey rsa:2048 -keyout /etc/tower/tower.key -out /etc/tower/tower.cert -subj "/C=US/ST=NC/L=Raleigh/O=Ansible/CN=www.ansible.com"
+  args:
+    creates: /etc/tower/tower.cert
+  notify:
+    - restart httpd
+
+- name: Configure file permissions on certificate file.
+  file:
+    group: '{{ aw_group }}'
+    mode: 0600
+    path: /etc/tower/tower.cert
+    owner: '{{ aw_user }}'
+  notify:
+    - restart httpd
+
+- name: Configure file permissions on key file.
+  file:
+    group: '{{ aw_group }}'
+    mode: 0600
+    path: /etc/tower/tower.key
+    owner: '{{ aw_user }}'
+  notify:
+    - restart httpd
+
+- name: Stop and disable prior versions of httpd
+  service:
+    name: '{{ item }}'
+    state: stopped
+    enabled: no
+  ignore_errors: True
+  with_items: '{{ httpd_old_init_names | default([]) }}'
+
+- name: Stop and disable munin
+  service:
+    name: 'munin-node'
+    state: stopped
+    enabled: no
+  ignore_errors: True
+
+- name: start httpd and configure to startup automatically
+  service:
+    name: '{{ httpd_init_name }}'
+    state: started
+    enabled: yes
+
